@@ -1,34 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:learnignflutter/services/play_syllable.dart';
+import 'package:learnignflutter/views/syllables_counter.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final audioPlayer = PlaySyllable(AudioPlayer());
     return Scaffold(
       body: Stack(
         children: [
@@ -45,21 +30,21 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Image.asset(
-                  'assets/images/home_screen_button1.png',
-                  height: 300,
-                  width: 600,
+                IconButton(
+                  icon: Image.asset(
+                    'assets/images/home_screen_button1.png',
+                  ),
+                  iconSize: 300,
+                  onPressed: () async {
+                    audioPlayer.playSyllable(['sy', 'la', 'by'], 0);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SyllablesCounter(),
+                      ),
+                    );
+                  },
                 ),
-                // SizedBox(height: 20),
-                // TextButton(
-                //   onPressed: () {},
-                //   child: Text('Button 1'),
-                // ),
-                // SizedBox(height: 10),
-                // TextButton(
-                //   onPressed: () {},
-                //   child: Text('Button 2'),
-                // ),
               ],
             ),
           ),
