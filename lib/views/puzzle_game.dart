@@ -30,7 +30,7 @@ class _PuzzlesState extends State<Puzzles> {
   void initState() {
     super.initState();
     puzzleImageFile =
-        _getImageFileFromAssets('images/puzzle pattern 2- alpha channel.png');
+        _getImageFileFromAssets('images/puzzle pattern 3- alpha channel.png');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(Duration(seconds: 2), () => _updateImageSize());
     });
@@ -93,7 +93,7 @@ class _PuzzlesState extends State<Puzzles> {
                 iconSize: 200,
                 onPressed: () {}),
             Image.asset(
-              'assets/images/puzzle pattern 2- alpha channel.png',
+              'assets/images/puzzle pattern 3- alpha channel.png',
               key: _imageKey,
             )
           ]),
@@ -108,6 +108,7 @@ class _PuzzlesState extends State<Puzzles> {
                   _calculateImageDimension(snapshot.data)
                       .then((size) => originalPhotoSize = size);
                   return Stack(
+                    fit: StackFit.loose,
                     children: [
                       for (int i = 0; i < widget.puzzleSyllables.length; i++)
                         GestureDetectorWidget(
@@ -190,7 +191,10 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
                 child: IconButton(
               iconSize: 300 * widget.resizeFactor!,
               icon: Image.asset(widget.assetLocation),
-              onPressed: () {},
+              onPressed: () {
+                print(
+                    '${widget.resizedImageSize!.height} ${widget.photoSize!.height}');
+              },
             )),
             Center(
               child: TextButton(
