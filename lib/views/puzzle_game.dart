@@ -5,8 +5,7 @@ import 'package:learnignflutter/Utils/sylabless_lists.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
-
-import '../Utils/all_exceptions.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class Puzzles extends StatefulWidget {
   final String puzzleItem;
@@ -25,15 +24,26 @@ class _PuzzlesState extends State<Puzzles> {
   late final Future<File> puzzleImageFile;
   late final Future<int> resizeValue;
   Size? originalPhotoSize;
+  dynamic loadedImage;
 
   @override
   void initState() {
     super.initState();
     puzzleImageFile =
-        _getImageFileFromAssets('images/puzzle pattern 3- alpha channel.png');
+        assetToFile('assets/images/puzzle pattern 2- alpha channel.png');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(Duration(seconds: 2), () => _updateImageSize());
     });
+  }
+
+  Future<File> assetToFile(String path) async {
+    final bytes = await rootBundle.load(path);
+    final buffer = bytes.buffer;
+    final tempDir = await getTemporaryDirectory();
+    final file = await File('${tempDir.path}/$path').create(recursive: true);
+    file.writeAsBytesSync(
+        buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+    return file;
   }
 
   Future<Size> _calculateImageDimension(futurefile) {
@@ -51,17 +61,17 @@ class _PuzzlesState extends State<Puzzles> {
     return completer.future;
   }
 
-  Future<File> _getImageFileFromAssets(String path) async {
-    Directory tempDir = await getTemporaryDirectory();
-    String tempPath = tempDir.path;
-    var filePath = "$tempPath/$path";
-    var file = File(filePath);
-    if (file.existsSync()) {
-      return file;
-    } else {
-      throw FileNotFoundException();
-    }
-  }
+  // Future<File> _getImageFileFromAssets(String path) async {
+  //   Directory tempDir = await getTemporaryDirectory();
+  //   String tempPath = tempDir.path;
+  //   var filePath = "$tempPath/$path";
+  //   var file = File(filePath);
+  //   if (file.existsSync()) {
+  //     return file;
+  //   } else {
+  //     throw FileNotFoundException();
+  //   }
+  // }
 
   void _updateImageSize() {
     final size = _imageKey.currentContext?.size;
@@ -93,7 +103,7 @@ class _PuzzlesState extends State<Puzzles> {
                 iconSize: 200,
                 onPressed: () {}),
             Image.asset(
-              'assets/images/puzzle pattern 3- alpha channel.png',
+              'assets/images/puzzle pattern 2- alpha channel.png',
               key: _imageKey,
             )
           ]),
@@ -107,8 +117,8 @@ class _PuzzlesState extends State<Puzzles> {
                 if (snapshot.hasData) {
                   _calculateImageDimension(snapshot.data)
                       .then((size) => originalPhotoSize = size);
+                  print(originalPhotoSize);
                   return Stack(
-                    fit: StackFit.loose,
                     children: [
                       for (int i = 0; i < widget.puzzleSyllables.length; i++)
                         GestureDetectorWidget(
@@ -151,8 +161,8 @@ class GestureDetectorWidget extends StatefulWidget {
 class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
   double _x = 0;
   double _y = 0;
-  final double _boxWidth = 150;
-  final double _boxHeight = 150;
+  // final double _boxWidth = 50;
+  // final double _boxHeight = 50;
 
   @override
   Widget build(BuildContext context) {
@@ -166,50 +176,51 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
           // określ granice przeciągania
           if (_x < 0) {
             _x = 0;
-          } else if (_x > MediaQuery.of(context).size.width - _boxWidth) {
-            _x = MediaQuery.of(context).size.width - _boxWidth;
+            // } else if (_x > MediaQuery.of(context).size.width - _boxWidth) {
+            //   _x = MediaQuery.of(context).size.width - _boxWidth;
           }
 
           if (_y < 0) {
             _y = 0;
-          } else if (_y > MediaQuery.of(context).size.height - _boxHeight) {
-            _y = MediaQuery.of(context).size.height - _boxHeight;
+            // } else if (_y > MediaQuery.of(context).size.height - _boxHeight) {
+            //   _y = MediaQuery.of(context).size.height - _boxHeight;
           }
         });
       },
       child: Container(
-        height: 150,
-        width: 150,
+        height: 90,
+        width: 90,
         color: Colors.transparent,
         margin: EdgeInsets.only(
           left: _x,
           top: _y,
         ),
-        child: Stack(
-          children: [
-            Center(
-                child: IconButton(
-              iconSize: 300 * widget.resizeFactor!,
-              icon: Image.asset(widget.assetLocation),
-              onPressed: () {
-                print(
-                    '${widget.resizedImageSize!.height} ${widget.photoSize!.height}');
-              },
-            )),
-            Center(
-              child: TextButton(
-                onPressed: null,
-                child: Text(
-                  widget.syl,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 60,
+        child: UnconstrainedBox(
+          child: Stack(
+            children: [
+              Center(
+                  child: IconButton(
+                iconSize: 300 * widget.resizeFactor!,
+                icon: Image.asset(widget.assetLocation),
+                onPressed: () {
+                  print(widget.resizeFactor);
+                },
+              )),
+              Center(
+                child: TextButton(
+                  onPressed: null,
+                  child: Text(
+                    widget.syl,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 60,
+                    ),
+                    // textAlign: TextAlign.start,
                   ),
-                  // textAlign: TextAlign.start,
                 ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );
