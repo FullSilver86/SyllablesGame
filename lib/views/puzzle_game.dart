@@ -156,6 +156,8 @@ class GestureDetectorWidget extends StatefulWidget {
 class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
   double _x = 0;
   double _y = 0;
+  double puzzleElementOffsetdx = 0;
+  double puzzleElementOffsetdy = 0;
   // final double _boxWidth = 50;
   // final double _boxHeight = 50;
 
@@ -193,13 +195,22 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
         child: Stack(
           children: [
             UnconstrainedBox(
-              child: IconButton(
-                iconSize: 600 * widget.resizeFactor!,
-                icon: Image.asset(widget.assetLocation),
-                onPressed: () {
-                  print(widget.resizeFactor);
-                },
-              ),
+              child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                RenderBox puzzleelementRenderBox =
+                    context.findRenderObject() as RenderBox;
+                Offset puzzleElementOffset =
+                    puzzleelementRenderBox.localToGlobal(Offset.zero);
+                puzzleElementOffsetdx = puzzleElementOffset.dx;
+                return IconButton(
+                  iconSize: 600 * widget.resizeFactor!,
+                  icon: Image.asset(widget.assetLocation),
+                  onPressed: () {
+                    print(widget.resizeFactor);
+                    print(puzzleElementOffsetdx);
+                  },
+                );
+              }),
             ),
             Container(
               //I need the font for all!!
