@@ -36,6 +36,13 @@ class _PuzzlesState extends State<Puzzles> {
     });
   }
 
+  @override
+  void dispose() {
+    assetToFile('assets/images/puzzle pattern 2- alpha channel.png')
+        .then((file) => file.delete()); // zwolnij plik obrazu
+    super.dispose();
+  }
+
   Future<File> assetToFile(String path) async {
     final bytes = await rootBundle.load(path);
     final buffer = bytes.buffer;
@@ -60,18 +67,6 @@ class _PuzzlesState extends State<Puzzles> {
     );
     return completer.future;
   }
-
-  // Future<File> _getImageFileFromAssets(String path) async {
-  //   Directory tempDir = await getTemporaryDirectory();
-  //   String tempPath = tempDir.path;
-  //   var filePath = "$tempPath/$path";
-  //   var file = File(filePath);
-  //   if (file.existsSync()) {
-  //     return file;
-  //   } else {
-  //     throw FileNotFoundException();
-  //   }
-  // }
 
   void _updateImageSize() {
     final size = _imageKey.currentContext?.size;
@@ -169,11 +164,11 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
     return GestureDetector(
       onPanUpdate: (DragUpdateDetails details) {
         setState(() {
-          // aktualizuj pozycję przeciągania
+          // possition
           _x += details.delta.dx;
           _y += details.delta.dy;
 
-          // określ granice przeciągania
+          // edges
           if (_x < 0) {
             _x = 0;
             // } else if (_x > MediaQuery.of(context).size.width - _boxWidth) {
@@ -195,32 +190,32 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
           left: _x,
           top: _y,
         ),
-        child: UnconstrainedBox(
-          child: Stack(
-            children: [
-              Center(
-                  child: IconButton(
-                iconSize: 300 * widget.resizeFactor!,
+        child: Stack(
+          children: [
+            UnconstrainedBox(
+              child: IconButton(
+                iconSize: 600 * widget.resizeFactor!,
                 icon: Image.asset(widget.assetLocation),
                 onPressed: () {
                   print(widget.resizeFactor);
                 },
-              )),
-              Center(
-                child: TextButton(
-                  onPressed: null,
-                  child: Text(
-                    widget.syl,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 60,
-                    ),
-                    // textAlign: TextAlign.start,
+              ),
+            ),
+            Container(
+              //I need the font for all!!
+              margin: const EdgeInsets.all(12),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  widget.syl,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 400,
                   ),
                 ),
-              )
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
