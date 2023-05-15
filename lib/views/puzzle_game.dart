@@ -19,12 +19,14 @@ class Puzzles extends StatefulWidget {
 }
 
 class _PuzzlesState extends State<Puzzles> {
-  final _imageKey = GlobalKey();
+  final _puzzleBoardKey = GlobalKey();
   Size? imageSize = Size.zero;
   late final Future<File> puzzleImageFile;
   late final Future<int> resizeValue;
   Size? originalPhotoSize;
   dynamic loadedImage;
+  double puzzleBoardOffsetdx = 0.0;
+  double puzzleBoardOffsetdy = 0.0;
 
   @override
   void initState() {
@@ -32,14 +34,18 @@ class _PuzzlesState extends State<Puzzles> {
     puzzleImageFile =
         assetToFile('assets/images/puzzle pattern 2- alpha channel.png');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration(seconds: 2), () => _updateImageSize());
+      Future.delayed(Duration(seconds: 2), () {
+        _updateImageSize();
+        _updateImagePosition();
+        print('puzzle board offset $puzzleBoardOffsetdy');
+      });
     });
   }
 
   @override
   void dispose() {
     assetToFile('assets/images/puzzle pattern 2- alpha channel.png')
-        .then((file) => file.delete()); // zwolnij plik obrazu
+        .then((file) => file.delete());
     super.dispose();
   }
 
@@ -53,6 +59,7 @@ class _PuzzlesState extends State<Puzzles> {
     return file;
   }
 
+  // original image dimensions
   Future<Size> _calculateImageDimension(futurefile) {
     Completer<Size> completer = Completer();
     Image image = Image.file(futurefile);
@@ -68,14 +75,24 @@ class _PuzzlesState extends State<Puzzles> {
     return completer.future;
   }
 
+  //rendered image
   void _updateImageSize() {
-    final size = _imageKey.currentContext?.size;
+    final size = _puzzleBoardKey.currentContext?.size;
     if (size == null) {}
     if (imageSize != size) {
       imageSize = size!;
       print('imagesize is $imageSize');
       setState(() {});
     }
+  }
+
+  void _updateImagePosition() {
+    final RenderBox renderedImage =
+        _puzzleBoardKey.currentContext?.findRenderObject() as RenderBox;
+    final position = renderedImage.localToGlobal(Offset.zero);
+    puzzleBoardOffsetdx = position.dx;
+    puzzleBoardOffsetdy = position.dy;
+    setState(() {});
   }
 
   @override
@@ -99,7 +116,7 @@ class _PuzzlesState extends State<Puzzles> {
                 onPressed: () {}),
             Image.asset(
               'assets/images/puzzle pattern 2- alpha channel.png',
-              key: _imageKey,
+              key: _puzzleBoardKey,
             )
           ]),
         ),
@@ -207,7 +224,6 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
                   icon: Image.asset(widget.assetLocation),
                   onPressed: () {
                     print(widget.resizeFactor);
-                    print(puzzleElementOffsetdx);
                   },
                 );
               }),
