@@ -120,6 +120,8 @@ class _PuzzlesState extends State<Puzzles> {
                   future: puzzleImageFile,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
+                      _calculateImageDimension(snapshot.data)
+                          .then((size) => originalPhotoSize = size);
                       final RenderBox renderedImage =
                           _puzzleBoardKey.currentContext?.findRenderObject()
                               as RenderBox;
@@ -127,7 +129,7 @@ class _PuzzlesState extends State<Puzzles> {
                       context
                           .read<Positions>()
                           .setBoardOffset(position.dx, position.dy);
-                      print(context.watch<Positions>().boardOffset);
+                      // print(context.watch<Positions>().boardOffset);
                       return Stack(
                         children: [
                           for (int i = 0;
@@ -187,7 +189,7 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
     return GestureDetector(
       onPanUpdate: (DragUpdateDetails details) {
         setState(() {
-          // possition
+          // position
           _x += details.delta.dx;
           _y += details.delta.dy;
 
@@ -224,8 +226,7 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
                     puzzleelementRenderBox.localToGlobal(Offset.zero);
                 context.read<Positions>().setPuzzleElementOffset(
                     puzzleElementOffset.dx, puzzleElementOffset.dy);
-                print(context.watch<Positions>().puzzleOffset);
-                // puzzleElementOffsetdx = puzzleElementOffset.dx;
+                // print(context.watch<Positions>().puzzleOffset);
                 return IconButton(
                   iconSize: 600 * widget.resizeFactor!,
                   icon: Image.asset(widget.assetLocation),
