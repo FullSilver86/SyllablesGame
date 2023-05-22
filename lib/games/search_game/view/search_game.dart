@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:learnignflutter/views/puzzle_game.dart';
+import 'package:learnignflutter/games/puzzle_game/view/puzzle_game.dart';
 
 class SearchGame extends StatefulWidget {
   const SearchGame({super.key});
@@ -11,7 +11,7 @@ class SearchGame extends StatefulWidget {
 
 class _SearchGameState extends State<SearchGame> {
   List<String> selectedItems = [];
-  List<String> wordsList = ['rower', 'sowa', 'tata', 'lala'];
+  final List<String> wordsList = ['rower', 'sowa', 'tata', 'lala'];
 
   @override
   void initState() {

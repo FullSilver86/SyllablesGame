@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:learnignflutter/services/divide_syllables.dart';
 import 'package:learnignflutter/Utils/sylabless_lists.dart';
@@ -6,6 +5,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:provider/provider.dart';
+import 'package:learnignflutter/providers/puzzle_game_provider.dart';
 
 class Puzzles extends StatefulWidget {
   final String puzzleItem;
@@ -25,8 +26,6 @@ class _PuzzlesState extends State<Puzzles> {
   late final Future<int> resizeValue;
   Size? originalPhotoSize;
   dynamic loadedImage;
-  double puzzleBoardOffsetdx = 0.0;
-  double puzzleBoardOffsetdy = 0.0;
 
   @override
   void initState() {
@@ -34,10 +33,8 @@ class _PuzzlesState extends State<Puzzles> {
     puzzleImageFile =
         assetToFile('assets/images/puzzle pattern 2- alpha channel.png');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 2), () {
         _updateImageSize();
-        _updateImagePosition();
-        print('puzzle board offset $puzzleBoardOffsetdy');
       });
     });
   }
@@ -63,7 +60,7 @@ class _PuzzlesState extends State<Puzzles> {
   Future<Size> _calculateImageDimension(futurefile) {
     Completer<Size> completer = Completer();
     Image image = Image.file(futurefile);
-    image.image.resolve(ImageConfiguration()).addListener(
+    image.image.resolve(const ImageConfiguration()).addListener(
       ImageStreamListener(
         (ImageInfo image, bool synchronousCall) {
           var myImage = image.image;
@@ -86,83 +83,90 @@ class _PuzzlesState extends State<Puzzles> {
     }
   }
 
-  void _updateImagePosition() {
-    final RenderBox renderedImage =
-        _puzzleBoardKey.currentContext?.findRenderObject() as RenderBox;
-    final position = renderedImage.localToGlobal(Offset.zero);
-    puzzleBoardOffsetdx = position.dx;
-    puzzleBoardOffsetdy = position.dy;
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      Image.asset(
-        'assets/images/animated/20230419_130154.gif',
-        fit: BoxFit.cover,
-        height: double.infinity,
-        width: double.infinity,
-      ),
-      Scaffold(
-        backgroundColor: Colors.transparent.withOpacity(0),
-        body: Center(
-          child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-            IconButton(
-                icon: Image.asset(
-                  'assets/images/items/${widget.puzzleItem}.png',
-                ),
-                iconSize: 200,
-                onPressed: () {}),
-            Image.asset(
-              'assets/images/puzzle pattern 2- alpha channel.png',
-              key: _puzzleBoardKey,
-            )
-          ]),
-        ),
-      ),
-      Scaffold(
-          backgroundColor: Colors.transparent.withOpacity(0),
-          body: FutureBuilder(
-              future: puzzleImageFile,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  _calculateImageDimension(snapshot.data)
-                      .then((size) => originalPhotoSize = size);
-                  print(originalPhotoSize);
-                  return Stack(
-                    children: [
-                      for (int i = 0; i < widget.puzzleSyllables.length; i++)
-                        GestureDetectorWidget(
-                          assetLocation: 'assets/images/${i + 1}element.png',
-                          syl: widget.puzzleSyllables[i],
-                          photoSize: originalPhotoSize,
-                          resizedImageSize: imageSize,
-                        ),
-                    ],
-                  );
-                } else {
-                  return const Text('Waiting');
-                }
-              })),
-    ]);
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => Positions()),
+        ],
+        child: Stack(children: [
+          Image.asset(
+            'assets/images/animated/20230419_130154.gif',
+            fit: BoxFit.cover,
+            height: double.infinity,
+            width: double.infinity,
+          ),
+          Scaffold(
+            backgroundColor: Colors.transparent.withOpacity(0),
+            body: Center(
+              child:
+                  Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+                IconButton(
+                    icon: Image.asset(
+                      'assets/images/items/${widget.puzzleItem}.png',
+                    ),
+                    iconSize: 200,
+                    onPressed: () {}),
+                Image.asset(
+                  'assets/images/puzzle pattern 2- alpha channel.png',
+                  key: _puzzleBoardKey,
+                )
+              ]),
+            ),
+          ),
+          Scaffold(
+              backgroundColor: Colors.transparent.withOpacity(0),
+              body: FutureBuilder(
+                  future: puzzleImageFile,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      final RenderBox renderedImage =
+                          _puzzleBoardKey.currentContext?.findRenderObject()
+                              as RenderBox;
+                      final position = renderedImage.localToGlobal(Offset.zero);
+                      context
+                          .read<Positions>()
+                          .setBoardOffset(position.dx, position.dy);
+                      print(context.watch<Positions>().boardOffset);
+                      return Stack(
+                        children: [
+                          for (int i = 0;
+                              i < widget.puzzleSyllables.length;
+                              i++)
+                            GestureDetectorWidget(
+                              id: i + 1,
+                              assetLocation:
+                                  'assets/images/${i + 1}element.png',
+                              syl: widget.puzzleSyllables[i],
+                              photoSize: originalPhotoSize,
+                              resizedImageSize: imageSize,
+                            ),
+                        ],
+                      );
+                    } else {
+                      return const Text('Waiting');
+                    }
+                  })),
+        ]));
   }
 }
 
 class GestureDetectorWidget extends StatefulWidget {
+  final int id;
   final String assetLocation;
   final String syl;
   final Size? photoSize;
   final Size? resizedImageSize;
   double? resizeFactor;
 
-  GestureDetectorWidget(
-      {required this.syl,
-      required this.assetLocation,
-      required this.photoSize,
-      required this.resizedImageSize,
-      super.key})
-      : resizeFactor = resizedImageSize != null && photoSize != null
+  GestureDetectorWidget({
+    required this.id,
+    required this.syl,
+    required this.assetLocation,
+    required this.photoSize,
+    required this.resizedImageSize,
+    super.key,
+  }) : resizeFactor = resizedImageSize != null && photoSize != null
             ? resizedImageSize.height / photoSize.height
             : 0.5;
 
@@ -173,8 +177,8 @@ class GestureDetectorWidget extends StatefulWidget {
 class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
   double _x = 0;
   double _y = 0;
-  double puzzleElementOffsetdx = 0;
-  double puzzleElementOffsetdy = 0;
+  // double puzzleElementOffsetdx = 0;
+  // double puzzleElementOffsetdy = 0;
   // final double _boxWidth = 50;
   // final double _boxHeight = 50;
 
@@ -218,7 +222,10 @@ class GestureDetectorWidgetState extends State<GestureDetectorWidget> {
                     context.findRenderObject() as RenderBox;
                 Offset puzzleElementOffset =
                     puzzleelementRenderBox.localToGlobal(Offset.zero);
-                puzzleElementOffsetdx = puzzleElementOffset.dx;
+                context.read<Positions>().setPuzzleElementOffset(
+                    puzzleElementOffset.dx, puzzleElementOffset.dy);
+                print(context.watch<Positions>().puzzleOffset);
+                // puzzleElementOffsetdx = puzzleElementOffset.dx;
                 return IconButton(
                   iconSize: 600 * widget.resizeFactor!,
                   icon: Image.asset(widget.assetLocation),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:learnignflutter/views/search_game.dart';
+import 'package:learnignflutter/games/search_game/view/search_game.dart';
 
 class SyllablesCounter extends StatefulWidget {
   const SyllablesCounter({super.key});
